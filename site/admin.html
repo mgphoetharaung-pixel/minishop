@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7C3AED">
+<title>MiniShop Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css?v=4">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script type="importmap">
+{"imports":{
+  "firebase/app":"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+  "firebase/database":"https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js",
+  "firebase/auth":"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"
+}}
+</script>
+</head>
+<body>
+<div id="app">
+
+  <!-- LOGIN -->
+  <section id="login-view" class="login-wrap">
+    <div class="login-card">
+      <div class="brand"><span class="brand-dot"></span>MiniShop Admin</div>
+      <p class="muted">စီမံခန့်ခွဲမှုအတွက် လော့ဂ်အင်ဝင်ပါ</p>
+      <label>အီးမေးလ်</label>
+      <input id="l-email" type="email" placeholder="admin@example.com" autocomplete="username">
+      <label>စကားဝှက်</label>
+      <input id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+      <div class="err" id="l-err" hidden></div>
+      <button class="btn-primary big" id="l-btn">လော့ဂ်အင်</button>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <section id="admin-app" hidden>
+    <header class="atop">
+      <div class="brand"><span class="brand-dot"></span>MiniShop Admin</div>
+      <div class="auser"><span id="a-email"></span><button id="logout" class="link-btn">ထွက်ရန်</button></div>
+    </header>
+    <nav class="atabs">
+      <button class="atab active" data-t="dash"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</button>
+      <button class="atab" data-t="orders"><svg viewBox="0 0 24 24"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6"/></svg>Orders <span class="pill-n" id="n-pending" hidden></span></button>
+      <button class="atab" data-t="products"><svg viewBox="0 0 24 24"><path d="M6 7h12l1.5 13.5a1 1 0 01-1 1.1H5.5a1 1 0 01-1-1.1z"/><path d="M9 10V6a3 3 0 016 0v4"/></svg>Products</button>
+      <button class="atab" data-t="reports"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M7 17v-6M12 17V7M17 17v-9"/></svg>Reports</button>
+      <button class="atab" data-t="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5 5l2.1 2.1M16.9 16.9L19 19M19 5l-2.1 2.1M7.1 16.9L5 19"/></svg>Settings</button>
+    </nav>
+
+    <!-- DASHBOARD -->
+    <div class="apage" id="pg-dash">
+      <div class="stats" id="dash-stats"></div>
+      <h3>နောက်ဆုံး Orders များ</h3>
+      <div class="tbl-wrap"><table class="tbl" id="dash-recent"></table></div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="apage" id="pg-orders" hidden>
+      <div class="chips" id="o-filters">
+        <button class="chip active" data-f="all">အားလုံး</button>
+        <button class="chip" data-f="pending">စောင့်ဆိုင်းနေသည်</button>
+        <button class="chip" data-f="confirmed">အတည်ပြုပြီး</button>
+        <button class="chip" data-f="shipped">ပို့ဆောင်နေသည်</button>
+        <button class="chip" data-f="delivered">ရောက်ရှိပြီး</button>
+        <button class="chip" data-f="cancelled">ပယ်ဖျက်ထားသည်</button>
+      </div>
+      <div class="tbl-wrap"><table class="tbl" id="o-table"></table></div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="apage" id="pg-products" hidden>
+      <button class="btn-primary" id="p-add">＋ ပစ္စည်းအသစ်ထည့်ရန်</button>
+      <div class="tbl-wrap"><table class="tbl" id="p-table"></table></div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="apage" id="pg-reports" hidden>
+      <div class="rrow">
+        <label>ကာလ</label>
+        <select id="r-range">
+          <option value="7">နောက်ဆုံး ၇ ရက်</option>
+          <option value="14" selected>နောက်ဆုံး ၁၄ ရက်</option>
+          <option value="30">နောက်ဆုံး ၃၀ ရက်</option>
+        </select>
+      </div>
+      <div class="stats" id="r-stats"></div>
+      <div class="card"><h3>နေ့အလိုက် ဝင်ငွေ (Ks)</h3><canvas id="ch-rev"></canvas></div>
+      <div class="card"><h3>Order အခြေအနေ</h3><canvas id="ch-status"></canvas></div>
+      <div class="card"><h3>အရောင်းရဆုံး ပစ္စည်းများ (ဝင်ငွေ Ks)</h3><canvas id="ch-top"></canvas></div>
+      <div class="card"><h3>ငွေပေးချေမှုနည်းလမ်း</h3><canvas id="ch-pay"></canvas></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="apage" id="pg-settings" hidden>
+      <div class="card">
+        <h3>ဆိုင်ဆက်တင်</h3>
+        <label>ပို့ဆောင်ခ (Ks)</label><input id="s-fee" inputmode="numeric">
+        <label>KBZPay အကောင့်အမည်</label><input id="s-kbzn">
+        <label>KBZPay အကောင့်နံပါတ်</label><input id="s-kbza">
+        <label>WavePay အကောင့်အမည်</label><input id="s-waven">
+        <label>WavePay အကောင့်နံပါတ်</label><input id="s-wavea">
+        <button class="btn-primary big" id="s-save">သိမ်းမယ်</button>
+      </div>
+      <div class="card">
+        <h3>စကားဝှက်ပြောင်းရန်</h3>
+        <label>စကားဝှက်အသစ်</label><input id="s-pw1" type="password">
+        <label>အတည်ပြုရန် ထပ်ရိုက်ပါ</label><input id="s-pw2" type="password">
+        <button class="btn-outline big" id="s-pw">စကားဝှက်ပြောင်းမယ်</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ORDER MODAL -->
+  <div id="m-bg" hidden></div>
+  <div id="o-modal" class="modal" hidden>
+    <div class="m-head"><b id="m-code"></b><button id="m-x">✕</button></div>
+    <div id="m-body"></div>
+    <div class="m-status" id="m-status"></div>
+  </div>
+
+  <!-- PRODUCT MODAL -->
+  <div id="p-modal" class="modal" hidden>
+    <div class="m-head"><b id="pm-title">ပစ္စည်းအသစ်</b><button id="pm-x">✕</button></div>
+    <div id="pm-body">
+      <label>အမည် (မြန်မာ + English)</label><input id="pm-name">
+      <div class="rrow2">
+        <div><label>ဈေး (Ks)</label><input id="pm-price" inputmode="numeric"></div>
+        <div><label>မူရင်းဈေး (Ks, မရှိရင်ဗလာ)</label><input id="pm-old" inputmode="numeric"></div>
+      </div>
+      <div class="rrow2">
+        <div><label>အမျိုးအစား</label><select id="pm-cat"><option>အင်္ကျီ</option><option>ဂါဝန်</option><option>စကတ် & ဘောင်း</option></select></div>
+        <div><label>Stock အရေအတွက်</label><input id="pm-stock" inputmode="numeric"></div>
+      </div>
+      <label>အရောင်</label><input id="pm-color" placeholder="ဥပမာ ပန်းရောင်">
+      <label>ပစ္စည်းအကြောင်း</label><textarea id="pm-desc" rows="3"></textarea>
+      <label>ပုံ</label>
+      <div class="img-pick">
+        <img id="pm-prev" src="" alt="">
+        <div>
+          <input type="file" id="pm-file" accept="image/*" hidden>
+          <button class="btn-outline sm" id="pm-up">ပုံတင်ရန်</button>
+          <div class="muted sm-t">သို့မဟုတ် ပုံလင့်ခ်</div>
+          <input id="pm-url" placeholder="https://...">
+        </div>
+      </div>
+      <label class="chk"><input type="checkbox" id="pm-active" checked> ဆိုင်မှာ ပြသမယ်</label>
+      <button class="btn-primary big" id="pm-save">သိမ်းမယ်</button>
+    </div>
+  </div>
+
+  <div id="toast" hidden></div>
+</div>
+<script type="module" src="admin.js?v=4"></script>
+</body>
+</html>

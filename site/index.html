@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#6D28D9">
+<title>MiniShop — အထည်ဆိုင်</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=4">
+<script type="importmap">
+{"imports":{
+  "firebase/app":"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+  "firebase/database":"https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
+}}
+</script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== HOME ===== -->
+  <section id="view-home" class="view">
+    <header class="topbar">
+      <div class="brand"><span class="brand-dot"></span>MiniShop</div>
+      <button class="link-btn" id="go-tracking-top">📦 Order စစ်ရန်</button>
+    </header>
+
+    <div class="hero">
+      <img src="images/hero-banner.jpg" alt="New Collection">
+      <div class="hero-text">
+        <div class="hero-kicker">New Collection</div>
+        <div class="hero-title">နွေရာသီ<br>အထည်သစ်များ</div>
+        <button class="hero-btn" id="hero-shop">ဝယ်ယူရန် →</button>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2>New arrivals</h2>
+      <span class="filter-ico">⫯</span>
+    </div>
+    <div class="chips" id="cat-chips">
+      <button class="chip active" data-cat="All">All</button>
+      <button class="chip" data-cat="အင်္ကျီ">အင်္ကျီ</button>
+      <button class="chip" data-cat="ဂါဝန်">ဂါဝန်</button>
+      <button class="chip" data-cat="စကတ် & ဘောင်း">စကတ် &amp; ဘောင်း</button>
+    </div>
+    <div class="grid" id="product-grid"></div>
+
+    <div class="section-head">
+      <h2>Best Selling</h2>
+      <button class="link-btn" id="see-all">အားလုံးကြည့်ရန်</button>
+    </div>
+    <div class="grid" id="best-grid"></div>
+    <div class="foot-space"></div>
+  </section>
+
+  <!-- ===== CATEGORIES ===== -->
+  <section id="view-cats" class="view" hidden>
+    <header class="topbar"><div class="brand"><span class="brand-dot"></span>အမျိုးအစားများ</div></header>
+    <div class="cat-list" id="cat-list"></div>
+    <div class="foot-space"></div>
+  </section>
+
+  <!-- ===== PRODUCT DETAIL ===== -->
+  <section id="view-detail" class="view" hidden>
+    <header class="topbar">
+      <button class="back-btn" data-back>‹</button>
+      <div class="brand"><span class="brand-dot"></span>MiniShop</div>
+      <span></span>
+    </header>
+    <div class="detail-img"><img id="d-img" src="" alt=""></div>
+    <div class="detail-body">
+      <h1 id="d-name"></h1>
+      <div class="d-price" id="d-price"></div>
+      <div class="d-label">အရေအတွက်</div>
+      <div class="stepper"><button id="d-minus">−</button><span id="d-qty">1</span><button id="d-plus">+</button></div>
+      <div class="d-label">ပစ္စည်းအကြောင်း</div>
+      <p class="d-desc" id="d-desc"></p>
+      <div class="d-chips">
+        <span class="pill"><span class="dot" id="d-dot"></span><span id="d-color"></span></span>
+        <span class="pill">Size · <span id="d-size">S</span></span>
+      </div>
+      <div class="d-actions">
+        <button class="btn-outline" id="d-add">🛍 Add to cart</button>
+        <button class="btn-primary" id="d-buy">Buy now</button>
+      </div>
+    </div>
+    <div class="foot-space"></div>
+  </section>
+
+  <!-- ===== CHECKOUT ===== -->
+  <section id="view-checkout" class="view" hidden>
+    <header class="topbar">
+      <button class="back-btn" data-back>‹</button>
+      <div class="brand"><span class="brand-dot"></span>ငွေရှင်းရန်</div>
+      <span></span>
+    </header>
+
+    <div class="card">
+      <div class="card-title"><span class="num">၃</span> ပို့ဆောင်မည့်လိပ်စာ</div>
+      <label>လက်ခံမည့်သူအမည် <b>*</b></label>
+      <input id="f-name" placeholder="လက်ခံမည့်သူအမည်">
+      <label>ဖုန်းနံပါတ် <b>*</b></label>
+      <input id="f-phone" inputmode="tel" placeholder="09...">
+      <label>လိပ်စာ <b>*</b></label>
+      <input id="f-addr" placeholder="ဥပမာ ၁၂၃၊ ပြည်လမ်း...">
+      <label>တိုင်း / ပြည်နယ် <b>*</b></label>
+      <select id="f-region"><option value="">— ရွေးချယ်ပါ —</option></select>
+      <label>မြို့နယ် <b>*</b></label>
+      <select id="f-town"><option value="">တိုင်းအရင်ရွေးပါ</option></select>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="num">၄</span> ငွေပေးချေမှု</div>
+      <div class="pay-opts">
+        <button class="pay-opt active" data-pay="COD"><b>Cash on Delivery</b><small>အိမ်ရောက်ငွေချေ</small></button>
+        <button class="pay-opt" data-pay="KBZPay"><b>KBZPay</b><small>ငွေကြိုရှင်း</small></button>
+        <button class="pay-opt" data-pay="WavePay"><b>WavePay</b><small>ငွေကြိုရှင်း</small></button>
+      </div>
+      <div id="prepaid-box" hidden>
+        <div class="amount-card"><small>အခု လွဲရမည့်ငွေ</small><div class="amount" id="pp-amount"></div></div>
+        <div class="acct-card">
+          <div><b id="pp-acct-name">Mini Shop (နမူနာ)</b><div class="acct-no" id="pp-acct">09-000-000-001</div></div>
+          <button class="btn-primary sm" id="copy-acct">⧉ ကူးမယ်</button>
+        </div>
+        <label>Transaction နံပါတ်၏ နောက်ဆုံးဂဏန်း ၅ လုံး ဖြည့်ပေးပါ <b>*</b></label>
+        <input id="f-txn" inputmode="numeric" maxlength="5" placeholder="12345">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="num">၅</span> အော်ဒါအကျဉ်း</div>
+      <div id="co-items"></div>
+      <div class="row"><span>ပစ္စည်းဖိုး</span><span id="co-sub"></span></div>
+      <div class="row"><span>ပို့ဆောင်ခ</span><span id="co-del"></span></div>
+      <div class="row total"><span>စုစုပေါင်း</span><span id="co-total"></span></div>
+      <button class="btn-primary big" id="place-order">Order တင်မယ်</button>
+    </div>
+    <div class="foot-space"></div>
+  </section>
+
+  <!-- ===== SUCCESS ===== -->
+  <section id="view-success" class="view" hidden>
+    <div class="success-wrap">
+      <div class="check">✓</div>
+      <h1>Order တင်ပြီးပါပြီ!</h1>
+      <p class="muted" id="s-thanks"></p>
+      <div class="card">
+        <div class="row"><span class="muted">Order နံပါတ်</span><b class="order-no" id="s-code"></b></div>
+        <hr>
+        <div class="row"><span class="muted">ပစ္စည်းဖိုး</span><span id="s-sub"></span></div>
+        <div class="row"><span class="muted">ပို့ဆောင်ခ</span><span id="s-del"></span></div>
+        <div class="row total"><span>စုစုပေါင်း</span><span id="s-total"></span></div>
+        <div class="pay-note" id="s-pay"></div>
+      </div>
+      <div class="card tip">
+        <b>📦 Order ကို Tracking လုပ်ရန်</b>
+        <p class="muted">လူကြီးမင်း၏ Order ကို Tracking လုပ်လိုပါက အောက်တွင် ဖုန်းနံပါတ် ထည့်ပြီး Tracking လုပ်နိုင်ပါသည်။</p>
+        <button class="btn-outline big" id="s-go-track">Order စစ်ဆေးရန်</button>
+      </div>
+      <button class="btn-primary big" id="s-continue">ဆက်လက်ဝယ်ယူမယ်</button>
+    </div>
+    <div class="foot-space"></div>
+  </section>
+
+  <!-- ===== TRACKING ===== -->
+  <section id="view-tracking" class="view" hidden>
+    <header class="topbar">
+      <button class="back-btn" data-back>‹</button>
+      <div class="brand"><span class="brand-dot"></span>Order စစ်ဆေးရန်</div>
+      <span></span>
+    </header>
+    <p class="muted center">Order တင်စဉ်က ဖုန်းနံပါတ် နှင့် Order နံပါတ်ဖြင့် ရှာပါ။</p>
+    <div class="card">
+      <input id="t-phone" inputmode="tel" placeholder="ဖုန်းနံပါတ်">
+      <input id="t-code" placeholder="Order နံပါတ် (ဥပမာ MS-AB12CD)">
+      <button class="btn-primary big" id="t-search">🔍 ရှာ</button>
+    </div>
+    <div id="t-result"></div>
+    <div class="foot-space"></div>
+  </section>
+
+  <!-- ===== TAB BAR ===== -->
+  <nav id="tabbar">
+    <button class="tab active" data-tab="home">⌂<small>Home</small></button>
+    <button class="tab" data-tab="cats">▦<small>အမျိုးအစား</small></button>
+    <button class="tab" data-tab="cart">🛍<small>ခြင်းတောင်း</small><span class="badge" id="cart-badge" hidden>0</span></button>
+  </nav>
+
+  <!-- ===== CART SHEET ===== -->
+  <div id="sheet-bg" hidden></div>
+  <div id="cart-sheet" hidden>
+    <div class="sheet-head">
+      <b>🛍 ဈေးခြင်းတောင်း <span class="count" id="sheet-count">0</span></b>
+      <button id="sheet-close">✕</button>
+    </div>
+    <div id="sheet-items"></div>
+    <div class="sheet-foot">
+      <div class="row total"><span>စုစုပေါင်း</span><span id="sheet-total"></span></div>
+      <button class="btn-primary big" id="sheet-order">Order တင်မယ်</button>
+    </div>
+  </div>
+
+  <div id="toast" hidden></div>
+</div>
+<script type="module" src="app.js?v=4"></script>
+</body>
+</html>
